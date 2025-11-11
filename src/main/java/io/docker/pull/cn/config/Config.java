@@ -1,5 +1,6 @@
 package io.docker.pull.cn.config;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.system.SystemUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
-import org.springframework.validation.annotation.Validated;
 
 @Slf4j
 @Configuration
@@ -20,8 +20,8 @@ public class Config {
     @Bean
     public DockerClient dockerClient() {
         boolean windows = SystemUtil.getOsInfo().isWindows();
-        String dockerHost =  windows ? "tcp://localhost:2375" : "unix:///var/run/docker.sock";
-        log.info("docker主机路径：{}",dockerHost);
+        String dockerHost = windows ? "tcp://localhost:2375" : "unix:///var/run/docker.sock";
+        log.info("docker主机路径：{}", dockerHost);
 
         DefaultDockerClientConfig.Builder builder = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost(dockerHost);
@@ -40,13 +40,19 @@ public class Config {
     @Bean
     public DockerClient dockerClientRemote(SysProp sysProp) {
         SysProp.Registry registry = sysProp.getRegistry();
-        Assert.hasText(registry.getUser(), "注册中心用户不能为空");
-        Assert.hasText(registry.getPwd(), "注册中心密码不能为空");
+        if (StrUtil.isEmpty(registry.getUser())) {
+            log.trace("注册中心用户为空");
+            return null;
+        }
+        if (StrUtil.isEmpty(registry.getPwd())) {
+            log.trace("注册中心密码为空");
+            return null;
+        }
 
 
         boolean windows = SystemUtil.getOsInfo().isWindows();
-        String dockerHost =  windows ? "tcp://localhost:2375" : "unix:///var/run/docker.sock";
-        log.info("docker主机路径：{}",dockerHost);
+        String dockerHost = windows ? "tcp://localhost:2375" : "unix:///var/run/docker.sock";
+        log.info("docker主机路径：{}", dockerHost);
 
         DefaultDockerClientConfig.Builder builder = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost(dockerHost);

@@ -1,3 +1,8 @@
 spring:
   profiles:
     active: dev
+
+sys:
+  registry:
+    url: registry.cn-hangzhou.aliyuncs.com
+  target-repository: registry.cn-hangzhou.aliyuncs.com/jian41/docker-pull-cn-target

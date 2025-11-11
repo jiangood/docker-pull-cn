@@ -7,7 +7,8 @@
 # documentation.
 
 name: Java CI with Maven
-
+env:
+  sys.registry.pwd: ${{ secrets.REGISTRY_PWD }}
 on:
   issues:
     types: [opened, edited]

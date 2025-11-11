@@ -10,7 +10,7 @@ name: Java CI with Maven
 
 on:
   issues:
-    types: [opened, edited] 
+    types: [opened, edited]
 
 jobs:
   build:
@@ -26,7 +26,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn -B package --file pom.xml && mv target/app.jar /home/
+      run: mvn  package -q  && mv target/app.jar /home/
 
 
     - name: Run jar

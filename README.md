@@ -6,13 +6,17 @@
 ## 步骤1 
   创建issue，标题就写 python:3
 ## 步骤2 
-  等待任务执行，执行成功后的镜像地址会自动回复到该issue， 得到示例的镜像地址：registry.cn-hangzhou.aliyuncs.com/jian41/docker-pull-cn-target:python_3
+等待任务执行，执行成功后的镜像地址会自动回复到该issue
+  
+得到镜像地址：registry.cn-hangzhou.aliyuncs.com/jian41/images:python_3
+
 ## 步骤3 
   拉取镜像并重命名
-  ```shell
-  docker pull registry.cn-hangzhou.aliyuncs.com/jian41/docker-pull-cn-target:python_3
-  docker tag registry.cn-hangzhou.aliyuncs.com/jian41/docker-pull-cn-target:python_3 python:3
-  ```
+```shell
+docker pull registry.cn-hangzhou.aliyuncs.com/jian41/images:python_3
+docker tag registry.cn-hangzhou.aliyuncs.com/jian41/images:python_3 python:3
+```
+然后就可以在主机上使用python:3 这个镜像了
 
 ## 步骤3 简化版
 执行如下命令

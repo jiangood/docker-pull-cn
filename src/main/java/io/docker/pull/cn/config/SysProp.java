@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties
+@ConfigurationProperties("sys")
 public class SysProp {
 
     Registry registry;

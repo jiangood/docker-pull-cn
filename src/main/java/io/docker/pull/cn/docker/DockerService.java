@@ -1,12 +1,10 @@
-package io.docker.pull.cn;
+package io.docker.pull.cn.docker;
 
 import cn.hutool.crypto.SecureUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.InspectImageResponse;
-import com.github.dockerjava.api.command.PullImageResultCallback;
-import com.github.dockerjava.api.model.PullResponseItem;
-import com.github.dockerjava.api.model.PushResponseItem;
+import com.github.dockerjava.api.model.ResponseItem;
 import io.docker.pull.cn.config.SysProp;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
@@ -19,7 +17,11 @@ import org.springframework.util.Assert;
 @AllArgsConstructor
 public class DockerService {
 
-    DockerClient cli;
+    @Resource
+    DockerClient dockerClientRemote;
+
+    @Resource
+    DockerClient dockerClient;
 
     @Resource
     SysProp sysProp;
@@ -52,40 +54,27 @@ public class DockerService {
      * @param image 如 nginx:latest
      */
     public void pull(String image) throws InterruptedException {
-        cli.pullImageCmd(image).exec(getPullImageResultCallback()).awaitCompletion();
+        log.info("开始拉取镜像: {}", image);
+        dockerClient.pullImageCmd(image).exec(getCallback()).awaitCompletion();
 
     }
 
-    private static PullImageResultCallback getPullImageResultCallback() {
-        return new PullImageResultCallback() {
-            @Override
-            public void onNext(PullResponseItem item) {
-                // 打印拉取过程中的状态信息
-                if (item.getStatus() != null) {
-                    log.info("状态: {}", item.getStatus());
-                } else if (item.getProgressDetail() != null) {
-                    // 可以添加更详细的进度显示逻辑
-                    log.info("进度: {}", item.getProgressDetail().getCurrent() + " / " + item.getProgressDetail().getTotal());
-                }
-                super.onNext(item);
-            }
-        };
-    }
 
     public void push(String image) throws InterruptedException {
-        cli.pushImageCmd(image).exec(getResultCallback()).awaitCompletion();
+        dockerClientRemote.pushImageCmd(image).exec(getCallback()).awaitCompletion();
     }
 
-    private static ResultCallback.Adapter<PushResponseItem> getResultCallback() {
+    private static <T extends ResponseItem> ResultCallback.Adapter<T> getCallback() {
         return new ResultCallback.Adapter<>() {
             @Override
-            public void onNext(PushResponseItem item) {
+            public void onNext(T item) {
+                String status = item.getStatus();
+                String progress = item.getProgress();
 
-                if (item.getStatus() != null) {
-                    log.info("状态: {}", item.getStatus());
-                } else if (item.getProgressDetail() != null) {
-                    // 可以添加更详细的进度显示逻辑
-                    log.info("进度: {}", item.getProgressDetail().getCurrent() + " / " + item.getProgressDetail().getTotal());
+                if (progress != null) {
+                    log.info("进度 {}", progress);
+                } else if (status != null) {
+                    log.info("状态 {}", status);
                 }
                 super.onNext(item);
             }
@@ -94,7 +83,7 @@ public class DockerService {
 
     public String getImageId(String image) {
         // 使用 inspectImageCmd 命令，传入完整的 REPO:TAG
-        InspectImageResponse inspectResponse = cli.inspectImageCmd(image).exec();
+        InspectImageResponse inspectResponse = dockerClient.inspectImageCmd(image).exec();
 
         // Image ID 存储在 ID 字段中
         String imageId = inspectResponse.getId();
@@ -107,7 +96,7 @@ public class DockerService {
 
         String[] arr = target.split(":");
 
-        cli.tagImageCmd(imageId, arr[0], arr[1]).exec();
+        dockerClient.tagImageCmd(imageId, arr[0], arr[1]).exec();
     }
 
 }

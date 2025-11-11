@@ -11,7 +11,7 @@
   拉取镜像并重命名
   ```shell
   docker pull registry.cn-hangzhou.aliyuncs.com/jian41/docker-pull-cn-target:python_3
-  docker tag registry.cn-hangzhou.aliyuncs.com/jian41/docker-pull-cn-target:python_3
+  docker tag registry.cn-hangzhou.aliyuncs.com/jian41/docker-pull-cn-target:python_3 python:3
   ```
 
 ## 步骤3 简化版

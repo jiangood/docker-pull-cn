@@ -52,7 +52,12 @@ public class DockerService {
      * @param image 如 nginx:latest
      */
     public void pull(String image) throws InterruptedException {
-        cli.pullImageCmd(image).exec(new PullImageResultCallback() {
+        cli.pullImageCmd(image).exec(getPullImageResultCallback()).awaitCompletion();
+
+    }
+
+    private static PullImageResultCallback getPullImageResultCallback() {
+        return new PullImageResultCallback() {
             @Override
             public void onNext(PullResponseItem item) {
                 // 打印拉取过程中的状态信息
@@ -64,12 +69,15 @@ public class DockerService {
                 }
                 super.onNext(item);
             }
-        }).awaitCompletion();
-
+        };
     }
 
     public void push(String image) throws InterruptedException {
-        cli.pushImageCmd(image).exec(new ResultCallback.Adapter<>() {
+        cli.pushImageCmd(image).exec(getResultCallback()).awaitCompletion();
+    }
+
+    private static ResultCallback.Adapter<PushResponseItem> getResultCallback() {
+        return new ResultCallback.Adapter<>() {
             @Override
             public void onNext(PushResponseItem item) {
 
@@ -81,7 +89,7 @@ public class DockerService {
                 }
                 super.onNext(item);
             }
-        }).awaitCompletion();
+        };
     }
 
     public String getImageId(String image) {

@@ -52,7 +52,7 @@ public class DockerService {
     }
 
     private String getChangedTargetImageName(String image) {
-        String repository = sysProp.getRegistry().getUrl() + "/" + sysProp.getTargetRepository();
+        String repository =  sysProp.getTargetRepository();
         String targetImage = repository + ":" + image.replace("/", "_").replace(":", "_");
         return targetImage;
     }
@@ -69,6 +69,7 @@ public class DockerService {
 
 
     public void push(String image) throws InterruptedException {
+        log.info("开始推送镜像:{}",image);
         dockerClientRemote.pushImageCmd(image).exec(getCallback()).awaitCompletion();
     }
 
@@ -83,6 +84,8 @@ public class DockerService {
                     log.info("进度 {}", progress);
                 } else if (status != null) {
                     log.info("状态 {}", status);
+                }else if(item.getErrorDetail() != null && item.getErrorDetail().getCode() != null) {
+                    log.info("错误 {}",item.getErrorDetail().getMessage());
                 }
                 super.onNext(item);
             }

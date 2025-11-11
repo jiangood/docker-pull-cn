@@ -10,6 +10,8 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
+import org.springframework.validation.annotation.Validated;
 
 @Slf4j
 @Configuration
@@ -38,6 +40,9 @@ public class Config {
     @Bean
     public DockerClient dockerClientRemote(SysProp sysProp) {
         SysProp.Registry registry = sysProp.getRegistry();
+        Assert.hasText(registry.getUser(), "注册中心用户不能为空");
+        Assert.hasText(registry.getPwd(), "注册中心密码不能为空");
+
 
         boolean windows = SystemUtil.getOsInfo().isWindows();
         String dockerHost =  windows ? "tcp://localhost:2375" : "unix:///var/run/docker.sock";

@@ -5,4 +5,5 @@ spring:
 sys:
   registry:
     url: registry.cn-hangzhou.aliyuncs.com
+    user: hustme
   target-repository: registry.cn-hangzhou.aliyuncs.com/jian41/docker-pull-cn-target

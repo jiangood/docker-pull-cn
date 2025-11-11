@@ -1,16 +1,22 @@
 package io.docker.pull.cn.docker;
 
-import cn.hutool.crypto.SecureUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ArrayUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.InspectImageResponse;
+import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.ResponseItem;
 import io.docker.pull.cn.config.SysProp;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+
+import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -26,9 +32,11 @@ public class DockerService {
     @Resource
     SysProp sysProp;
 
-    public String md5(String image) {
-        String s = SecureUtil.md5(image);
-        return s;
+
+    public void pullRemoteAndChangeTag(String image) {
+        String targetImage = getChangedTargetImageName(image);
+        log.info("转换镜像地址 {}", targetImage);
+        this.changeTag(targetImage, image);
     }
 
     public void pullAndPush(String image) throws InterruptedException {
@@ -91,12 +99,16 @@ public class DockerService {
     }
 
     public void changeTag(String image, String target) {
+        log.info("准备修改镜像TAG");
+        log.info("原始镜像：{}", image);
+        log.info("改后镜像：{}", target);
         String imageId = getImageId(image);
         Assert.notNull(imageId, "获取imageId失败");
 
         String[] arr = target.split(":");
 
         dockerClient.tagImageCmd(imageId, arr[0], arr[1]).exec();
+        log.info("修改结束");
     }
 
 }

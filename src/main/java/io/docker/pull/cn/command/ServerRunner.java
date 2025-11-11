@@ -1,4 +1,4 @@
-package io.docker.pull.cn;
+package io.docker.pull.cn.command;
 
 import io.docker.pull.cn.docker.DockerService;
 import jakarta.annotation.Resource;
@@ -15,9 +15,8 @@ public class ServerRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if(args.length == 0){
-            log.error("请输入镜像参数");
-            throw new IllegalArgumentException();
+        if(args.length != 1){
+            return;
         }
         String image = args[0];
         log.info("参数 {}", image);

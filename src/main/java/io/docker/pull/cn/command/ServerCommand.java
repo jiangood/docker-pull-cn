@@ -27,7 +27,7 @@ public class ServerCommand implements CommandLineRunner {
 
         try {
             String targetImage = dockerService.pullAndPush(image);
-            String msg = "✅ 任务已完成！ 镜像地址：" + targetImage ;
+            String msg = "✅ 任务已完成！ 镜像地址： " + targetImage ;
             writeGithubActionOutputVariable("msg", msg);
         }catch (Exception e){
             log.error("拉取或推送时错误",e);

@@ -20,7 +20,7 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock registry.cn-hangzho
 # 创建issue触发后使用
 
 ## 步骤1 
-  创建issue，标题就写就像名称，如python:3 （如果该issue之前被创建过，可再回复中看到镜像地址）
+  创建issue，标题就写就像名称，如python:3 （如果该issue已存在，可查看到镜像地址）
 ## 步骤2 
 等待任务执行，执行成功会自动回复到issue
   

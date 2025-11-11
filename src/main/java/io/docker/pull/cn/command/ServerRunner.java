@@ -22,5 +22,6 @@ public class ServerRunner implements CommandLineRunner {
         log.info("参数 {}", image);
 
         dockerService.pullAndPush(image);
+
     }
 }

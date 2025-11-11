@@ -1,5 +1,7 @@
 # docker-pull-cn
 由于网络原因无法拉取镜像, 利用 github action 同步到阿里云免费镜像仓库
+
+项目使用issue触发
 <img width="1466" height="1070" alt="image" src="https://github.com/user-attachments/assets/b633b84d-0cd1-43e1-a4ea-698dc15134d2" />
 
 

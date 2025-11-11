@@ -13,7 +13,7 @@ env:
 on:
   issue_comment:
     # 仅在创建新的评论时触发工作流
-    types: [created]
+    types: [created,edited]
     # 您也可以添加 edited 和 deleted
 
 

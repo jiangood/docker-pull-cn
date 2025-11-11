@@ -9,7 +9,7 @@ RUN mvn clean package -DskipTests -q
 RUN mv target/app.jar /home/app.jar
 
 
-FROM amazoncorretto:17
+FROM amazoncorretto:17-jre-alpine
 ARG IMAGE_NAME
 WORKDIR /home
 COPY --from=java /home/ ./

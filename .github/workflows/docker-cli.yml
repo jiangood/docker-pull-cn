@@ -1,4 +1,4 @@
-name: Aliyun Docker
+name: 构建阿里云镜像，用于客户端cli直接pull rename
 
 on:
   push:

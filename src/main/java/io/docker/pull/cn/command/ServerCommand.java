@@ -31,7 +31,7 @@ public class ServerCommand implements CommandLineRunner {
             writeGithubActionOutputVariable("msg", msg);
         }catch (Exception e){
             log.error("拉取或推送时错误",e);
-            String msg = "❌ 任务执行错误，请删除issue后重试"  ;
+            String msg = "❌ 任务执行异常：" + e.getMessage() ;
             writeGithubActionOutputVariable("msg", msg);
         }
     }

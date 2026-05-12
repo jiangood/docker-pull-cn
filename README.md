@@ -9,19 +9,10 @@
 
 <img width="1466" height="1070" alt="image" src="https://github.com/user-attachments/assets/b633b84d-0cd1-43e1-a4ea-698dc15134d2" />
 
-# 快速使用
-执行如下命令
-```shell
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock registry.cn-hangzhou.aliyuncs.com/jiangood/docker-pull  python:3
-```
-其中python:3 可替换为实际镜像
-
-如果报错提示镜像不存，需要创建issue触发Github Action同步
-
-# 创建issue触发后使用
+# 快速使用 （创建issue触发后使用）
 
 ## 步骤1 
-  创建issue，标题就写就像名称，如python:3 （必须包含冒号。如果该issue已存在，可查看该issue，得到镜像地址）
+  创建issue，标题就写就像名称，如python:3 （必须包含冒号。）
 ## 步骤2 
 等待任务执行，执行成功会自动回复到issue
   

@@ -19,3 +19,27 @@
 得到镜像地址：registry.cn-hangzhou.aliyuncs.com/jiangood/images:python_3
 
 
+
+---
+
+## 已同步镜像
+
+| 镜像 | 阿里云地址 |
+|------|-----------|
+| python:3.12 | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:python_3.12` |
+| ollama/ollama:latest | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:ollama_ollama_latest` |
+| dustynv/llama_cpp:r35.4.1 | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:dustynv_llama_cpp_r35.4.1` |
+| 1186258278/openclaw-zh:latest | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:1186258278_openclaw-zh_latest` |
+| node:24 | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:node_24` |
+| node:22 | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:node_22` |
+| redis:latest | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:redis_latest` |
+| maven:3-openjdk-17 | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:maven_3-openjdk-17` |
+| python:3 | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:python_3` |
+| elasticsearch:7.17.19 | `registry.cn-hangzhou.aliyuncs.com/jian41/images:elasticsearch_7.17.19` |
+| node:16-alpine | `registry.cn-hangzhou.aliyuncs.com/jian41/images:node_16-alpine` |
+| maven:alpine | `registry.cn-hangzhou.aliyuncs.com/jian41/images:maven_alpine` |
+| maven:3-openjdk-8 | `registry.cn-hangzhou.aliyuncs.com/jian41/images:maven_3-openjdk-8` |
+| python:3.11 | `registry.cn-hangzhou.aliyuncs.com/jian41/images:python_3.11` |
+| openjdk:17.0.2-oracle | `registry.cn-hangzhou.aliyuncs.com/jian41/images:openjdk_17.0.2-oracle` |
+| maven:3-amazoncorretto-17 | `registry.cn-hangzhou.aliyuncs.com/jian41/images:maven_3-amazoncorretto-17` |
+| nginx:alpine | `registry.cn-hangzhou.aliyuncs.com/jian41/images:nginx_alpine` |

@@ -43,3 +43,5 @@
 | openjdk:17.0.2-oracle | `registry.cn-hangzhou.aliyuncs.com/jian41/images:openjdk_17.0.2-oracle` |
 | maven:3-amazoncorretto-17 | `registry.cn-hangzhou.aliyuncs.com/jian41/images:maven_3-amazoncorretto-17` |
 | nginx:alpine | `registry.cn-hangzhou.aliyuncs.com/jian41/images:nginx_alpine` |
+| mysql:8.0-oraclelinux8 | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:mysql_8.0-oraclelinux8` |
+| mysql:8.0.46 | `registry.cn-hangzhou.aliyuncs.com/jiangood/images:mysql_8.0.46` |

@@ -1,0 +1,169 @@
+name: Sync Maintenance
+
+on:
+  schedule:
+    # 每周一 UTC 00:00 = 北京时间 08:00
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+  REGISTRY_PWD: ${{ secrets.REGISTRY_PWD }}
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 获取所有 open issues
+        id: list-issues
+        run: |
+          gh issue list --state open --json number,title \
+            --jq '.[] | "\(.number)|\(.title)"' > issues.txt
+          echo "共 $(wc -l < issues.txt) 个 open issues"
+
+      - name: 遍历 issue 检查评论并关闭
+        id: process-issues
+        run: |
+          new_rows=""
+          first=true
+
+          while IFS='|' read -r number title; do
+            [ -z "$number" ] && continue
+            echo "检查 Issue #$number: $title"
+
+            comments=$(gh api "/repos/${{ github.repository }}/issues/$number/comments" \
+              --jq '.[].body')
+
+            if echo "$comments" | grep -q '✅'; then
+              echo "✅ Issue #$number 成功，关闭中..."
+              gh issue close "$number" --reason completed
+
+              address=$(echo "$comments" | grep '✅' | sed 's/.*镜像地址： *//' | head -1)
+
+              if [ -n "$address" ]; then
+                echo "  镜像地址: $address"
+                if [ "$first" = true ]; then
+                  new_rows="$title|$address"
+                  first=false
+                else
+                  new_rows="$new_rows"$'\n'"$title|$address"
+                fi
+              fi
+            else
+              echo "  Issue #$number 无成功标记，跳过"
+            fi
+          done < issues.txt
+
+          if [ -z "$new_rows" ]; then
+            touch new_rows.txt.empty
+          else
+            printf '%s\n' "$new_rows" > new_rows.txt
+          fi
+
+      - name: 验证镜像是否存在并更新 README
+        run: |
+          verified_rows=""
+
+          # ====== 1. 验证现有 README 条目 ======
+          echo "=== 验证现有条目 ==="
+          if grep -q '^|' README.md 2>/dev/null; then
+            while IFS='|' read -r _ image address _; do
+              image=$(echo "$image" | xargs)
+              address=$(echo "$address" | xargs | tr -d '`')
+              [ -z "$image" ] && continue
+
+              repo="${address%:*}"
+              tag="${address##*:}"
+              registry="${repo%%/*}"
+              repository="${repo#*/}"
+
+              http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+                -u "$REGISTRY_USER:$REGISTRY_PWD" \
+                -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+                "https://$registry/v2/$repository/manifests/$tag" \
+                --connect-timeout 10 --max-time 15) || http_code="000"
+
+              if [ "$http_code" = "200" ]; then
+                echo "  ✅ $image"
+                verified_rows="$verified_rows
+| $image | \`$address\` |"
+              elif [ "$http_code" = "000" ]; then
+                echo "  ⚠️ $image (请求失败, 保留)"
+                verified_rows="$verified_rows
+| $image | \`$address\` |"
+              else
+                echo "  ❌ $image ($http_code) - 移除"
+              fi
+            done < <(grep '^|' README.md | tail -n +3)
+          fi
+
+          # ====== 2. 验证新条目 ======
+          if [ -f new_rows.txt ] && [ ! -f new_rows.txt.empty ]; then
+            echo "=== 验证新条目 ==="
+            while IFS='|' read -r image address; do
+              [ -z "$image" ] && continue
+
+              repo="${address%:*}"
+              tag="${address##*:}"
+              registry="${repo%%/*}"
+              repository="${repo#*/}"
+
+              http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+                -u "$REGISTRY_USER:$REGISTRY_PWD" \
+                -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+                "https://$registry/v2/$repository/manifests/$tag" \
+                --connect-timeout 10 --max-time 15) || http_code="000"
+
+              if [ "$http_code" = "200" ]; then
+                echo "  ✅ $image"
+                verified_rows="$verified_rows
+| $image | \`$address\` |"
+              elif [ "$http_code" = "000" ]; then
+                echo "  ⚠️ $image (请求失败, 保留)"
+                verified_rows="$verified_rows
+| $image | \`$address\` |"
+              else
+                echo "  ❌ $image ($http_code) - 跳过添加"
+              fi
+            done < new_rows.txt
+          fi
+
+          # ====== 3. 去重并写入 README ======
+          section_line=$(grep -n '^## 已同步镜像' README.md | head -1 | cut -d: -f1)
+
+          if [ -n "$section_line" ]; then
+            head -n $((section_line - 1)) README.md > README.new.md
+          else
+            cp README.md README.new.md
+          fi
+
+          {
+            echo ""
+            echo "## 已同步镜像"
+            echo ""
+            echo "| 镜像 | 阿里云地址 |"
+            echo "|------|-----------|"
+            echo "$verified_rows" | grep -v '^\s*$' | awk -F'|' '!seen[$2]++'
+          } >> README.new.md
+
+          mv README.new.md README.md
+          echo "=== 更新完成 ==="
+
+      - name: 提交 README 变更
+        run: |
+          if git diff --quiet README.md; then
+            echo "README.md 无变更"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "chore: 更新已同步镜像列表"
+          git push

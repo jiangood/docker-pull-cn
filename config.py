@@ -10,4 +10,6 @@ def get_config():
             "TARGET_REPOSITORY",
             "registry.cn-hangzhou.aliyuncs.com/jiangood/images",
         ),
+        "ghcr_repository": os.getenv("GHCR_REPO", ""),
+        "ghcr_token": os.getenv("GITHUB_TOKEN", ""),
     }

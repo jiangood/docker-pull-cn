@@ -16,7 +16,10 @@ def write_github_output(name, value):
         logger.warning("GITHUB_OUTPUT 环境变量不存在，跳过输出")
         return
     with open(path, "a", encoding="utf-8") as f:
-        f.write(f"{name}={value}\n")
+        if "\n" in value:
+            f.write(f"{name}<<EOF\n{value}\nEOF\n")
+        else:
+            f.write(f"{name}={value}\n")
 
 
 def main():
@@ -31,8 +34,13 @@ def main():
     service = DockerService(config)
 
     try:
-        target = service.pull_and_push(image)
-        msg = f"✅ 任务已完成！ 镜像地址： {target}"
+        ali_target = service.pull_and_push(image)
+
+        ghcr_target = service.push_to_ghcr(image)
+
+        msg = f"✅ 阿里云：{ali_target}"
+        if ghcr_target:
+            msg += f"\n✅ ghcr：{ghcr_target}"
         write_github_output("msg", msg)
     except Exception as e:
         logger.error("拉取或推送时错误", exc_info=True)

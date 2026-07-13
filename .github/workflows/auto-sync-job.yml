@@ -3,6 +3,7 @@ name: Docker Image Sync
 env:
   sys.registry.pwd: ${{ secrets.REGISTRY_PWD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GHCR_REPO: ${{ github.repository }}
 
 on:
   issues:
@@ -13,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
+      packages: write
 
     steps:
     - name: 检查标题是否包含冒号

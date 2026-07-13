@@ -1,9 +1,0 @@
-spring:
-  profiles:
-    active: dev
-
-sys:
-  registry:
-    url: registry.cn-hangzhou.aliyuncs.com
-    user: hustme
-  target-repository: registry.cn-hangzhou.aliyuncs.com/jiangood/images

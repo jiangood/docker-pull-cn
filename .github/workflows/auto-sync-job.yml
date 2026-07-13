@@ -1,57 +1,40 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+name: Docker Image Sync
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Java CI with Maven
 env:
   sys.registry.pwd: ${{ secrets.REGISTRY_PWD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 on:
   issues:
     types: [opened]
 
-
-
 jobs:
-  build:
-
+  sync:
     runs-on: ubuntu-latest
-
-    # 确保权限，以便工作流可以修改评论
     permissions:
       issues: write
+
     steps:
     - name: 检查标题是否包含冒号
       if: contains(github.event.issue.title, ':')
-      run:  echo "Issue 标题中包含冒号，继续执行后续步骤。"
+      run: echo "Issue 标题中包含冒号，继续执行"
 
     - name: 回复issue开始
       run: gh issue comment ${{ github.event.issue.number }} --body "🤖 任务已收到，正在执行中..." --repo ${{ github.repository }}
 
     - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven
-      run: mvn  package -q  && mv target/app.jar ./
+        python-version: "3.12"
 
+    - name: Install dependencies
+      run: pip install -r requirements.txt
 
-    - name: 执行操作
-      id: jar
-      run: java -jar app.jar ${{ github.event.issue.title }} server
+    - name: 执行同步
+      id: sync
+      run: python sync.py "${{ github.event.issue.title }}"
 
-      # --- 步骤 3: 修改原始评论 (核心步骤) ---
     - name: 回复issue完成
-      # 使用 GitHub CLI 来编辑触发工作流的原始评论
-      run: gh issue comment ${{ github.event.issue.number }} --body "${{ steps.jar.outputs.msg }}" --repo ${{ github.repository }}
-
-
-
-
+      run: gh issue comment ${{ github.event.issue.number }} --body "${{ steps.sync.outputs.msg }}" --repo ${{ github.repository }}

@@ -40,16 +40,13 @@ class DockerService:
         img.tag(target)
 
     def push(self, target):
-        auth_config = {}
         if self.config["registry_user"] and self.config["registry_pwd"]:
-            auth_config = {
-                "username": self.config["registry_user"],
-                "password": self.config["registry_pwd"],
-                "serveraddress": self.config["registry_url"],
-            }
-        for line in self.client.images.push(
-            target, auth_config=auth_config, stream=True, decode=True
-        ):
+            self.client.login(
+                username=self.config["registry_user"],
+                password=self.config["registry_pwd"],
+                registry=f"https://{self.config['registry_url']}",
+            )
+        for line in self.client.images.push(target, stream=True, decode=True):
             if "error" in line and line.get("error"):
                 raise DockerException(line["error"])
             status = line.get("status")

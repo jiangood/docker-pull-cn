@@ -1,15 +1,16 @@
 import logging
-
-import docker
-from docker.errors import DockerException
+import subprocess
 
 logger = logging.getLogger(__name__)
+
+
+class DockerError(Exception):
+    pass
 
 
 class DockerService:
     def __init__(self, config):
         self.config = config
-        self.client = docker.from_env()
 
     def _get_target_image(self, image):
         repo = self.config["target_repository"]
@@ -33,25 +34,23 @@ class DockerService:
 
     def pull(self, image):
         logger.info("拉取镜像: %s", image)
-        self.client.images.pull(image)
+        subprocess.run(["docker", "pull", image], check=True)
 
     def tag(self, image, target):
-        img = self.client.images.get(image)
-        img.tag(target)
+        subprocess.run(["docker", "tag", image, target], check=True)
 
     def push(self, target):
-        if self.config["registry_user"] and self.config["registry_pwd"]:
-            self.client.login(
-                username=self.config["registry_user"],
-                password=self.config["registry_pwd"],
-                registry=f"https://{self.config['registry_url']}",
+        registry_url = self.config["registry_url"]
+        user = self.config["registry_user"]
+        pwd = self.config["registry_pwd"]
+        if user and pwd:
+            proc = subprocess.run(
+                ["docker", "login", "-u", user, "--password-stdin", f"https://{registry_url}"],
+                input=pwd,
+                text=True,
+                capture_output=True,
             )
-        for line in self.client.images.push(target, stream=True, decode=True):
-            if "error" in line and line.get("error"):
-                raise DockerException(line["error"])
-            status = line.get("status")
-            progress = line.get("progress")
-            if progress:
-                logger.info("进度 %s", progress)
-            elif status:
-                logger.info("状态 %s", status)
+            logger.info("login: %s", proc.stdout.strip())
+            if proc.returncode != 0:
+                raise DockerError(f"登录失败: {proc.stderr.strip()}")
+        subprocess.run(["docker", "push", target], check=True)

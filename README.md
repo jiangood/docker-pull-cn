@@ -30,6 +30,9 @@
 - busybox:1.36
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:busybox__1.36`
   - ghcr: `ghcr.io/jiangood/docker-pull-cn:busybox__1.36`
+- maven:3.9.9
+  - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:maven__3.9.9`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:maven__3.9.9`
 - mysql:8.0
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:mysql__8.0`
   - ghcr: `ghcr.io/jiangood/docker-pull-cn:mysql__8.0`

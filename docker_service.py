@@ -4,6 +4,15 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 
+def reverse_tag(tag):
+    if "__" not in tag:
+        return None
+    head, _, tail = tag.rpartition("__")
+    if not head:
+        return None
+    return head.replace("___", "/") + ":" + tail
+
+
 class DockerError(Exception):
     pass
 

@@ -44,7 +44,7 @@
 1. 拉取两个 registry 的 tag 集合：
    - 阿里云：`GET /v2/jiangood/images/tags/list`（Basic Auth，REGISTRY_USER/REGISTRY_PWD）
    - ghcr：`GET /v2/<owner>/<repo>/tags/list`（`Bearer GITHUB_TOKEN`，ghcr 未配置则跳过）
-2. 反推每个 tag 的镜像名，按镜像名归并（同名 tag 在哪个 registry 存在就保留哪个地址）
+2. 反推每个 tag 的镜像名，按镜像名归并（同名 tag 在哪个 registry 存在就保留哪个地址）；无法反推（旧格式）的 tag 跳过
 3. 生成嵌套列表并重写 README 小节
 
 ## auto-sync-job.yml 修改
@@ -58,14 +58,11 @@
 6. 回复 msg
 7. `gh issue close` 关闭当前 issue
 
-## 一次性迁移：migrate-legacy.yml（临时 workflow）
+## 旧数据处理（不做迁移）
 
-跑完后手动删除。用途：清理旧单下划线格式的数据，使新格式 README 纯净。
-
-1. 关闭所有 open issues：`gh issue close`
-2. 清理 README：删除旧 `## 已同步镜像` 小节
-3. 删除阿里云旧 tag：`tags/list` 筛出单下划线格式 tag → `GET manifests/<tag>` 拿 digest → `DELETE manifests/<digest>`（Basic Auth）
-4. 删除 ghcr 旧 tag：同理（`Bearer GITHUB_TOKEN`）
+- 旧单下划线格式 tag、旧 README 条目、旧 issue 一律保留，暂不处理
+- 旧 tag 无法反推镜像名，README 生成时对反推失败的 tag 跳过，不计入列表（镜像仍在 registry 可正常拉取）
+- `sync-maintenance.yml` 删除，旧 open issue 不再自动关闭
 
 ## 删除 sync-maintenance.yml
 

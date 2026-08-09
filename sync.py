@@ -10,7 +10,7 @@ import base64
 import http.client
 import json
 from urllib.request import Request, urlopen
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
 
 from docker_service import reverse_tag
 
@@ -35,6 +35,27 @@ def _basic_auth(user, pwd):
     return f"Basic {token}"
 
 
+def _bearer_token(registry_url, auth_header, challenge, repository):
+    import re
+    params = {}
+    for m in re.finditer(r'(\w+)="([^"]*)"', challenge):
+        params[m.group(1)] = m.group(2)
+    realm = params.get("realm")
+    service = params.get("service")
+    scope = params.get("scope") or f"repository:{repository}:pull"
+    if not realm:
+        raise ValueError(f"无 realm 的 WWW-Authenticate: {challenge}")
+
+    url = f"{realm}?service={service}&scope={scope}"
+    req = Request(url, headers={"Authorization": auth_header})
+    with urlopen(req, timeout=15) as resp:
+        data = json.load(resp)
+    token = data.get("token") or data.get("access_token")
+    if not token:
+        raise ValueError(f"token 服务未返回 token: {data}")
+    return token
+
+
 def fetch_tags(registry_url, repository, user, pwd, token=None):
     url = f"https://{registry_url}/v2/{repository}/tags/list"
     headers = {"Accept": "application/json"}
@@ -43,8 +64,19 @@ def fetch_tags(registry_url, repository, user, pwd, token=None):
     else:
         headers["Authorization"] = _basic_auth(user, pwd)
     req = Request(url, headers=headers)
-    with urlopen(req, timeout=15) as resp:
-        data = json.load(resp)
+    try:
+        with urlopen(req, timeout=15) as resp:
+            data = json.load(resp)
+    except HTTPError as e:
+        if e.code != 401 or token:
+            raise
+        challenge = e.headers.get("WWW-Authenticate", "")
+        if not challenge:
+            raise
+        bearer = _bearer_token(registry_url, _basic_auth(user, pwd), challenge, repository)
+        req = Request(url, headers={"Accept": "application/json", "Authorization": f"Bearer {bearer}"})
+        with urlopen(req, timeout=15) as resp:
+            data = json.load(resp)
     return data.get("tags") or []
 
 

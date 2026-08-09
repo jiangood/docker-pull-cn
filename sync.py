@@ -25,7 +25,7 @@ def write_github_output(name, value):
 import base64
 import json
 from urllib.request import Request, urlopen
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 from docker_service import reverse_tag
 
@@ -63,7 +63,7 @@ def collect_images():
             image = reverse_tag(tag)
             if image:
                 result.setdefault(image, {})["阿里云"] = f"{config['target_repository']}:{tag}"
-    except HTTPError as e:
+    except URLError as e:
         logger.error("阿里云 tags/list 失败: %s", e)
 
     ghcr_repo = config["ghcr_repository"]
@@ -75,7 +75,7 @@ def collect_images():
                 image = reverse_tag(tag)
                 if image:
                     result.setdefault(image, {})["ghcr"] = f"ghcr.io/{ghcr_repo}:{tag}"
-        except HTTPError as e:
+        except URLError as e:
             logger.error("ghcr tags/list 失败: %s", e)
 
     return result

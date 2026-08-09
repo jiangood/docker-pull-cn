@@ -24,6 +24,8 @@
 
 ## 已同步镜像
 
+- busybox:1.36
+  - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:busybox__1.36`
 - mysql:8.0
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:mysql__8.0`
 - nginx:1.27

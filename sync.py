@@ -87,7 +87,41 @@ def collect_images():
     return result
 
 
+def generate_readme(images):
+    lines = ["", "## 已同步镜像", ""]
+    for image in sorted(images):
+        lines.append(f"- {image}")
+        for name, addr in images[image].items():
+            lines.append(f"  - {name}: `{addr}`")
+    return "\n".join(lines) + "\n"
+
+
+def update_readme():
+    images = collect_images()
+    section = generate_readme(images)
+
+    readme_path = "README.md"
+    with open(readme_path, encoding="utf-8") as f:
+        content = f.read()
+
+    marker = "## 已同步镜像"
+    if marker in content:
+        idx = content.index(marker)
+        head = content[:idx].rstrip() + "\n"
+    else:
+        head = content.rstrip() + "\n"
+
+    with open(readme_path, "w", encoding="utf-8") as f:
+        f.write(head + section)
+    return len(images)
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "--update-readme":
+        count = update_readme()
+        write_github_output("msg", f"📋 README 已更新，共 {count} 个镜像")
+        return
+
     if len(sys.argv) < 2:
         logger.error("用法: python sync.py <image>")
         sys.exit(1)

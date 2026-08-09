@@ -13,7 +13,7 @@ class DockerService:
         self.config = config
 
     def _format_tag(self, image):
-        return image.replace("/", "_").replace(":", "_")
+        return image.replace("/", "___").replace(":", "__")
 
     def _get_target_image(self, image):
         repo = self.config["target_repository"]

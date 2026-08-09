@@ -35,7 +35,7 @@ def _basic_auth(user, pwd):
     return f"Basic {token}"
 
 
-def _bearer_token(registry_url, auth_header, challenge, repository):
+def _bearer_token(auth_header, challenge, repository):
     import re
     params = {}
     for m in re.finditer(r'(\w+)="([^"]*)"', challenge):
@@ -56,25 +56,21 @@ def _bearer_token(registry_url, auth_header, challenge, repository):
     return token
 
 
-def fetch_tags(registry_url, repository, user, pwd, token=None):
+def fetch_tags(registry_url, repository, user, pwd):
     url = f"https://{registry_url}/v2/{repository}/tags/list"
     headers = {"Accept": "application/json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    else:
-        headers["Authorization"] = _basic_auth(user, pwd)
-    req = Request(url, headers=headers)
+    req = Request(url, headers={**headers, "Authorization": _basic_auth(user, pwd)})
     try:
         with urlopen(req, timeout=15) as resp:
             data = json.load(resp)
     except HTTPError as e:
-        if e.code != 401 or token:
+        if e.code != 401:
             raise
         challenge = e.headers.get("WWW-Authenticate", "")
         if not challenge:
             raise
-        bearer = _bearer_token(registry_url, _basic_auth(user, pwd), challenge, repository)
-        req = Request(url, headers={"Accept": "application/json", "Authorization": f"Bearer {bearer}"})
+        bearer = _bearer_token(_basic_auth(user, pwd), challenge, repository)
+        req = Request(url, headers={**headers, "Authorization": f"Bearer {bearer}"})
         with urlopen(req, timeout=15) as resp:
             data = json.load(resp)
     return data.get("tags") or []
@@ -109,7 +105,7 @@ def collect_images():
     ghcr_token = config["ghcr_token"]
     if ghcr_repo and ghcr_token:
         try:
-            tags = fetch_tags("ghcr.io", ghcr_repo, "", "", ghcr_token)
+            tags = fetch_tags("ghcr.io", ghcr_repo, "token", ghcr_token)
             for tag in tags:
                 image = reverse_tag(tag)
                 if image:

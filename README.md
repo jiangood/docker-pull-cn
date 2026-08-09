@@ -26,6 +26,8 @@
 
 - mysql:8.0
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:mysql__8.0`
+- nginx:1.27
+  - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:nginx__1.27`
 - nginx:latest
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:nginx__latest`
 - ollama/ollama:latest

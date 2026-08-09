@@ -15,6 +15,7 @@ jobs:
     permissions:
       issues: write
       packages: write
+      contents: write
 
     steps:
     - name: 检查标题是否包含冒号
@@ -30,5 +31,27 @@ jobs:
       id: sync
       run: python sync.py "${{ github.event.issue.title }}"
 
+    - name: 更新README
+      if: success()
+      run: python sync.py --update-readme
+
+    - name: 提交README变更
+      if: success()
+      run: |
+        if git diff --quiet README.md; then
+          echo "README.md 无变更"
+        else
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "chore: 自动更新已同步镜像列表"
+          git push
+        fi
+
     - name: 回复issue完成
+      if: always()
       run: gh issue comment ${{ github.event.issue.number }} --body "${{ steps.sync.outputs.msg }}" --repo ${{ github.repository }}
+
+    - name: 关闭issue
+      if: success()
+      run: gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}

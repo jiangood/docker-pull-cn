@@ -22,6 +22,65 @@ def write_github_output(name, value):
             f.write(f"{name}={value}\n")
 
 
+import base64
+import json
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+
+from docker_service import reverse_tag
+
+
+def _basic_auth(user, pwd):
+    token = base64.b64encode(f"{user}:{pwd}".encode()).decode()
+    return f"Basic {token}"
+
+
+def fetch_tags(registry_url, repository, user, pwd, token=None):
+    url = f"https://{registry_url}/v2/{repository}/tags/list"
+    headers = {"Accept": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    else:
+        headers["Authorization"] = _basic_auth(user, pwd)
+    req = Request(url, headers=headers)
+    with urlopen(req, timeout=15) as resp:
+        data = json.load(resp)
+    return data.get("tags") or []
+
+
+def collect_images():
+    config = get_config()
+    result = {}
+
+    try:
+        tags = fetch_tags(
+            config["registry_url"],
+            config["target_repository"].split("/", 1)[1],
+            config["registry_user"],
+            config["registry_pwd"],
+        )
+        for tag in tags:
+            image = reverse_tag(tag)
+            if image:
+                result.setdefault(image, {})["阿里云"] = f"{config['target_repository']}:{tag}"
+    except HTTPError as e:
+        logger.error("阿里云 tags/list 失败: %s", e)
+
+    ghcr_repo = config["ghcr_repository"]
+    ghcr_token = config["ghcr_token"]
+    if ghcr_repo and ghcr_token:
+        try:
+            tags = fetch_tags("ghcr.io", ghcr_repo, "", "", ghcr_token)
+            for tag in tags:
+                image = reverse_tag(tag)
+                if image:
+                    result.setdefault(image, {})["ghcr"] = f"ghcr.io/{ghcr_repo}:{tag}"
+        except HTTPError as e:
+            logger.error("ghcr tags/list 失败: %s", e)
+
+    return result
+
+
 def main():
     if len(sys.argv) < 2:
         logger.error("用法: python sync.py <image>")

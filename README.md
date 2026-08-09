@@ -24,19 +24,30 @@
 
 ## 已同步镜像
 
+- alpine:3.20
+  - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:alpine__3.20`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:alpine__3.20`
 - busybox:1.36
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:busybox__1.36`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:busybox__1.36`
 - mysql:8.0
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:mysql__8.0`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:mysql__8.0`
 - nginx:1.27
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:nginx__1.27`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:nginx__1.27`
 - nginx:latest
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:nginx__latest`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:nginx__latest`
 - ollama/ollama:latest
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:ollama___ollama__latest`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:ollama___ollama__latest`
 - python:3
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:python__3`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:python__3`
 - quay.io/coreos/etcd:v3.5.0
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:quay.io___coreos___etcd__v3.5.0`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:quay.io___coreos___etcd__v3.5.0`
 - redis:latest
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:redis__latest`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:redis__latest`

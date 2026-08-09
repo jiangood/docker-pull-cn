@@ -35,6 +35,20 @@ jobs:
       if: success()
       run: python sync.py --update-readme
 
+    - name: Debug ghcr auth
+      if: success()
+      run: |
+        echo "=== 1. 匿名请求 tags/list ==="
+        curl -s -i -o /dev/null -w "HTTP %{http_code}\n" https://ghcr.io/v2/jiangood/docker-pull-cn/tags/list
+        echo "=== 2. 匿名 WWW-Authenticate ==="
+        curl -s -D - -o /dev/null https://ghcr.io/v2/jiangood/docker-pull-cn/tags/list | grep -i "www-authenticate"
+        echo "=== 3. 用 token 交换 ==="
+        curl -s "https://ghcr.io/token?service=ghcr.io&scope=repository:jiangood/docker-pull-cn:pull" -u "token:$GITHUB_TOKEN" | head -c 200
+        echo ""
+        echo "=== 4. 用交换的 token 请求 ==="
+        TOK=$(curl -s "https://ghcr.io/token?service=ghcr.io&scope=repository:jiangood/docker-pull-cn:pull" -u "token:$GITHUB_TOKEN" | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+        curl -s -w "\nHTTP %{http_code}\n" -H "Authorization: Bearer $TOK" https://ghcr.io/v2/jiangood/docker-pull-cn/tags/list
+
     - name: 提交README变更
       if: success()
       run: |

@@ -16,7 +16,7 @@
 ## 步骤2 
 等待任务执行，执行成功会自动回复到issue
   
-得到镜像地址：registry.cn-hangzhou.aliyuncs.com/jiangood/images:python_3
+得到镜像地址：registry.cn-hangzhou.aliyuncs.com/jiangood/images:python__3
 
 
 

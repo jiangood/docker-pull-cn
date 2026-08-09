@@ -6,6 +6,14 @@ import sys
 from config import get_config
 from docker_service import DockerService
 
+import base64
+import http.client
+import json
+from urllib.request import Request, urlopen
+from urllib.error import URLError
+
+from docker_service import reverse_tag
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -20,14 +28,6 @@ def write_github_output(name, value):
             f.write(f"{name}<<EOF\n{value}\nEOF\n")
         else:
             f.write(f"{name}={value}\n")
-
-
-import base64
-import json
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError, URLError
-
-from docker_service import reverse_tag
 
 
 def _basic_auth(user, pwd):
@@ -57,6 +57,7 @@ def collect_images():
         aliyun_repo = target_repo.split("/", 1)[1]
     else:
         aliyun_repo = None
+        logger.warning("target_repository 不包含 '/'，无法推导阿里云仓库名: %s", target_repo)
     try:
         if aliyun_repo:
             tags = fetch_tags(
@@ -69,7 +70,7 @@ def collect_images():
                 image = reverse_tag(tag)
                 if image:
                     result.setdefault(image, {})["阿里云"] = f"{config['target_repository']}:{tag}"
-    except (URLError, OSError, ValueError) as e:
+    except (URLError, OSError, ValueError, http.client.HTTPException) as e:
         logger.error("阿里云 tags/list 失败: %s", e)
 
     ghcr_repo = config["ghcr_repository"]
@@ -81,7 +82,7 @@ def collect_images():
                 image = reverse_tag(tag)
                 if image:
                     result.setdefault(image, {})["ghcr"] = f"ghcr.io/{ghcr_repo}:{tag}"
-        except (URLError, OSError, ValueError) as e:
+        except (URLError, OSError, ValueError, http.client.HTTPException) as e:
             logger.error("ghcr tags/list 失败: %s", e)
 
     return result
@@ -98,13 +99,18 @@ def generate_readme(images):
 
 def update_readme():
     images = collect_images()
-    section = generate_readme(images)
 
     readme_path = "README.md"
     with open(readme_path, encoding="utf-8") as f:
         content = f.read()
 
     marker = "## 已同步镜像"
+    if not images and marker in content:
+        logger.warning("registry 拉取失败，跳过 README 重写，保留现有列表")
+        return 0
+
+    section = generate_readme(images)
+
     if marker in content:
         idx = content.index(marker)
         head = content[:idx].rstrip() + "\n"

@@ -52,18 +52,24 @@ def collect_images():
     config = get_config()
     result = {}
 
+    target_repo = config["target_repository"]
+    if "/" in target_repo:
+        aliyun_repo = target_repo.split("/", 1)[1]
+    else:
+        aliyun_repo = None
     try:
-        tags = fetch_tags(
-            config["registry_url"],
-            config["target_repository"].split("/", 1)[1],
-            config["registry_user"],
-            config["registry_pwd"],
-        )
-        for tag in tags:
-            image = reverse_tag(tag)
-            if image:
-                result.setdefault(image, {})["阿里云"] = f"{config['target_repository']}:{tag}"
-    except URLError as e:
+        if aliyun_repo:
+            tags = fetch_tags(
+                config["registry_url"],
+                aliyun_repo,
+                config["registry_user"],
+                config["registry_pwd"],
+            )
+            for tag in tags:
+                image = reverse_tag(tag)
+                if image:
+                    result.setdefault(image, {})["阿里云"] = f"{config['target_repository']}:{tag}"
+    except (URLError, OSError, ValueError) as e:
         logger.error("阿里云 tags/list 失败: %s", e)
 
     ghcr_repo = config["ghcr_repository"]
@@ -75,7 +81,7 @@ def collect_images():
                 image = reverse_tag(tag)
                 if image:
                     result.setdefault(image, {})["ghcr"] = f"ghcr.io/{ghcr_repo}:{tag}"
-        except URLError as e:
+        except (URLError, OSError, ValueError) as e:
             logger.error("ghcr tags/list 失败: %s", e)
 
     return result

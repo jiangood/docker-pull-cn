@@ -30,6 +30,9 @@
 - busybox:1.36
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:busybox__1.36`
   - ghcr: `ghcr.io/jiangood/docker-pull-cn:busybox__1.36`
+- gitlab/gitlab-runner:latest
+  - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:gitlab___gitlab-runner__latest`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:gitlab___gitlab-runner__latest`
 - maven:3.9.9
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:maven__3.9.9`
   - ghcr: `ghcr.io/jiangood/docker-pull-cn:maven__3.9.9`

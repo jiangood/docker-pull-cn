@@ -54,6 +54,9 @@
 - python:3
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:python__3`
   - ghcr: `ghcr.io/jiangood/docker-pull-cn:python__3`
+- python:3.11-slim
+  - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:python__3.11-slim`
+  - ghcr: `ghcr.io/jiangood/docker-pull-cn:python__3.11-slim`
 - quay.io/coreos/etcd:v3.5.0
   - 阿里云: `registry.cn-hangzhou.aliyuncs.com/jiangood/images:quay.io___coreos___etcd__v3.5.0`
   - ghcr: `ghcr.io/jiangood/docker-pull-cn:quay.io___coreos___etcd__v3.5.0`

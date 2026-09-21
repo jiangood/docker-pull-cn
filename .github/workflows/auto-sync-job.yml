@@ -3,7 +3,6 @@ name: Docker Image Sync
 env:
   sys.registry.pwd: ${{ secrets.REGISTRY_PWD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GHCR_REPO: ${{ github.repository }}
 
 on:
   issues:
@@ -33,7 +32,9 @@ jobs:
 
     - name: 回复issue完成
       if: always()
-      run: gh issue comment ${{ github.event.issue.number }} --body "${{ steps.sync.outputs.msg }}" --repo ${{ github.repository }}
+      env:
+        MSG: ${{ steps.sync.outputs.msg }}
+      run: gh issue comment ${{ github.event.issue.number }} --body "$MSG" --repo ${{ github.repository }}
 
     - name: 关闭issue
       if: success()

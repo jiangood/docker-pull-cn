@@ -101,20 +101,20 @@ def collect_images():
     except (URLError, OSError, ValueError, http.client.HTTPException) as e:
         logger.error("阿里云 tags/list 失败: %s", e)
 
-    ghcr_repo = config["ghcr_repository"]
-    ghcr_token = config["ghcr_token"]
-    if ghcr_repo and ghcr_token:
-        try:
-            tags = fetch_tags("ghcr.io", ghcr_repo, "token", ghcr_token)
-            for tag in tags:
-                image = reverse_tag(tag)
-                if image:
-                    result.setdefault(image, {})["ghcr"] = f"ghcr.io/{ghcr_repo}:{tag}"
-        except (URLError, OSError, ValueError, http.client.HTTPException) as e:
-            logger.error("ghcr tags/list 失败: %s", e)
-
     return result
 
+
+def build_result_message(image, ali_target):
+    lines = [f"✅ 阿里云：{ali_target}"]
+
+    lines.append("")
+    lines.append("**拉取使用：**")
+    lines.append("```bash")
+    lines.append(f"docker pull {ali_target}")
+    lines.append(f"docker tag {ali_target} {image}")
+    lines.append("```")
+
+    return "\n".join(lines)
 
 
 def main():
@@ -131,11 +131,7 @@ def main():
     try:
         ali_target = service.pull_and_push(image)
 
-        ghcr_target = service.push_to_ghcr(image)
-
-        msg = f"✅ 阿里云：{ali_target}"
-        if ghcr_target:
-            msg += f"\n✅ ghcr：{ghcr_target}"
+        msg = build_result_message(image, ali_target)
         write_github_output("msg", msg)
     except Exception as e:
         logger.error("拉取或推送时错误", exc_info=True)

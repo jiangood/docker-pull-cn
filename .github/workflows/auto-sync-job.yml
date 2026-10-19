@@ -5,37 +5,61 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 on:
-  issues:
-    types: [opened]
+  issue_comment:
+    types: [created]
 
 jobs:
   sync:
+    if: >-
+      contains(github.event.issue.labels.*.name, 'image-sync') &&
+      startsWith(github.event.comment.body, '/pull ') &&
+      github.event.comment.user.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      packages: write
-      contents: write
 
     steps:
-    - name: 检查标题是否包含冒号
-      if: contains(github.event.issue.title, ':')
-      run: echo "Issue 标题中包含冒号，继续执行"
+    - name: 解析镜像名
+      id: params
+      env:
+        COMMENT_BODY: ${{ github.event.comment.body }}
+      run: |
+        image="$(printf '%s\n' "$COMMENT_BODY" | sed -n '1{s|^/pull[[:space:]]*||;p;}')"
+        image="$(printf '%s' "$image" | xargs)"
 
-    - name: 回复issue开始
-      run: gh issue comment ${{ github.event.issue.number }} --body "🤖 任务已收到，正在执行中..." --repo ${{ github.repository }}
+        if [ -z "$image" ]; then
+          echo "::error::未提供镜像名，格式：/pull python:3.12"
+          exit 1
+        fi
+        if [[ "$image" != *:* ]]; then
+          echo "::error::镜像名必须包含 tag，例如：/pull python:3.12"
+          exit 1
+        fi
+
+        echo "image=$image" >> "$GITHUB_OUTPUT"
+        echo "开始同步: $image"
+
+    - name: 标记已收到
+      continue-on-error: true
+      run: gh api -X POST "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" -f content=eyes
 
     - uses: actions/checkout@v4
 
     - name: 执行同步
       id: sync
-      run: python sync.py "${{ github.event.issue.title }}"
+      env:
+        IMAGE: ${{ steps.params.outputs.image }}
+      run: python sync.py "$IMAGE"
 
-    - name: 回复issue完成
+    - name: 回复结果
       if: always()
       env:
         MSG: ${{ steps.sync.outputs.msg }}
-      run: gh issue comment ${{ github.event.issue.number }} --body "$MSG" --repo ${{ github.repository }}
-
-    - name: 关闭issue
-      if: success()
-      run: gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}
+        IMAGE: ${{ steps.params.outputs.image }}
+      run: |
+        {
+          echo "### \`$IMAGE\`"
+          echo
+          echo "${MSG:-❌ 任务失败，镜像名可能无效，请查看 Actions 日志。}"
+        } > comment.md
+        gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file comment.md

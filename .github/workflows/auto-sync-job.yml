@@ -37,8 +37,8 @@ jobs:
           exit 1
         fi
         if [[ "$image" != *:* ]]; then
-          echo "::error::镜像名必须包含 tag，例如：/pull python:3.12"
-          exit 1
+          echo "未指定 tag，默认使用 latest: $image:latest"
+          image="$image:latest"
         fi
 
         echo "image=$image" >> "$GITHUB_OUTPUT"
@@ -89,8 +89,8 @@ jobs:
           else
             echo "🤖 **镜像同步｜❌ 没能开始**"
             echo
-            echo "请确认评论格式是 \`/pull 镜像名:tag\`，例如 \`/pull python:3.12\`。"
-            echo "如果格式没问题，可能是网络或镜像仓库暂时不可用，请稍后重试。"
+            echo "请确认评论格式是 \`/pull 镜像名[:tag]\`，例如 \`/pull python:3.12\`。"
+            echo "不写 tag 会默认使用 \`latest\`。"
           fi
         } > comment.md
 

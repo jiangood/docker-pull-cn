@@ -16,10 +16,12 @@
 /pull python:3
 ```
 
-镜像名必须包含冒号后的 tag，例如 `python:3`、`nginx:1.27`、`nvidia/cuda:12.4.1-base-ubuntu22.04`。
+`tag` 可以省略，例如 `/pull nginx` 等同于 `/pull nginx:latest`。
+
+其他例子：`/pull python:3.12`、`/pull nvidia/cuda:12.4.1-base-ubuntu22.04`。
 
 ## 步骤 2
-等待任务执行，执行成功会自动在 Issue 中回复镜像地址。
+机器人会先回复一条「⏳ 进行中」，同步结束后把同一条评论更新为结果，包含镜像地址。
 
 得到镜像地址：`registry.cn-hangzhou.aliyuncs.com/jiangood/images:python__3`
 
@@ -33,6 +35,6 @@ docker tag registry.cn-hangzhou.aliyuncs.com/jiangood/images:python__3 python:3
 # 说明
 
 - 只有在置顶的「镜像同步请求」Issue（带 `image-sync` 标签）下的 `/pull` 评论才会触发同步
-- 命令必须以 `/pull ` 开头，且镜像名包含 `:`
+- 命令必须以 `/pull ` 开头；不写 tag 时默认使用 `latest`
+- 每次请求只产生一条机器人评论（先「进行中」，完成后原地更新为结果）
 - 同步历史集中在这一条 Issue 中，不再为每个镜像新建 Issue
-- 同步失败时同样会回复失败原因，可查看 Actions 日志定位问题

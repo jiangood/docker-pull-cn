@@ -105,14 +105,36 @@ def collect_images():
 
 
 def build_result_message(image, ali_target):
-    lines = [f"✅ 阿里云：{ali_target}"]
+    lines = [
+        "🎉 **同步完成！**",
+        "",
+        f"镜像 `{image}` 已经同步到阿里云，可以在国内直接拉取了。",
+        "",
+        "**镜像地址**",
+        f"`{ali_target}`",
+        "",
+        "**拉取使用**",
+        "```bash",
+        f"docker pull {ali_target}",
+        f"docker tag {ali_target} {image}",
+        "```",
+    ]
 
-    lines.append("")
-    lines.append("**拉取使用：**")
-    lines.append("```bash")
-    lines.append(f"docker pull {ali_target}")
-    lines.append(f"docker tag {ali_target} {image}")
-    lines.append("```")
+    return "\n".join(lines)
+
+
+def build_error_message(image, error):
+    lines = [
+        "😢 **同步失败**",
+        "",
+        f"镜像 `{image}` 同步时出了点问题，请稍后重试。",
+        "如果一直失败，可以确认下镜像名和 tag 是否正确。",
+        "",
+        "**错误信息**",
+        "```",
+        str(error),
+        "```",
+    ]
 
     return "\n".join(lines)
 
@@ -135,7 +157,7 @@ def main():
         write_github_output("msg", msg)
     except Exception as e:
         logger.error("拉取或推送时错误", exc_info=True)
-        msg = f"❌ 任务执行异常：{e}"
+        msg = build_error_message(image, e)
         write_github_output("msg", msg)
         sys.exit(1)
 

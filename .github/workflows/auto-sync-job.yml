@@ -42,7 +42,7 @@ jobs:
     - name: 回复issue开始
       env:
         IMAGE: ${{ steps.params.outputs.image }}
-      run: gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "🤖 收到，开始同步 \`$IMAGE\` ..."
+      run: gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "🤖 收到！正在为你同步 \`$IMAGE\`，完成后会在这里回复拉取地址，请稍候…"
 
     - uses: actions/checkout@v4
 
@@ -59,8 +59,17 @@ jobs:
         IMAGE: ${{ steps.params.outputs.image }}
       run: |
         {
-          echo "### \`$IMAGE\`"
-          echo
-          echo "${MSG:-❌ 任务失败，镜像名可能无效，请查看 Actions 日志。}"
+          if [ -n "$IMAGE" ]; then
+            echo "### \`$IMAGE\`"
+            echo
+          fi
+          if [ -n "$MSG" ]; then
+            echo "$MSG"
+          else
+            echo "😢 同步没能完成"
+            echo
+            echo "请确认评论格式是 \`/pull 镜像名:tag\`，例如 \`/pull python:3.12\`。"
+            echo "如果格式没问题，可能是网络或镜像仓库暂时不可用，请稍后重试。"
+          fi
         } > comment.md
         gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file comment.md

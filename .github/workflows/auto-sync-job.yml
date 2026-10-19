@@ -39,9 +39,10 @@ jobs:
         echo "image=$image" >> "$GITHUB_OUTPUT"
         echo "开始同步: $image"
 
-    - name: 标记已收到
-      continue-on-error: true
-      run: gh api -X POST "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" -f content=eyes
+    - name: 回复issue开始
+      env:
+        IMAGE: ${{ steps.params.outputs.image }}
+      run: gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "🤖 收到，开始同步 \`$IMAGE\` ..."
 
     - uses: actions/checkout@v4
 

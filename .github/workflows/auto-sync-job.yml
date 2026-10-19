@@ -24,8 +24,13 @@ jobs:
       env:
         COMMENT_BODY: ${{ github.event.comment.body }}
       run: |
+        raw="$(printf '%s\n' "$COMMENT_BODY" | sed -n '1p')"
+        command="$(printf '%s' "$raw" | xargs)"
         image="$(printf '%s\n' "$COMMENT_BODY" | sed -n '1{s|^/pull[[:space:]]*||;p;}')"
         image="$(printf '%s' "$image" | xargs)"
+
+        # 先写出原始评论，失败时也能引用到用户的操作
+        echo "command=$command" >> "$GITHUB_OUTPUT"
 
         if [ -z "$image" ]; then
           echo "::error::未提供镜像名，格式：/pull python:3.12"
@@ -41,8 +46,17 @@ jobs:
 
     - name: 回复issue开始
       env:
-        IMAGE: ${{ steps.params.outputs.image }}
-      run: gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "🤖 收到！正在为你同步 \`$IMAGE\`，完成后会在这里回复拉取地址，请稍候…"
+        COMMAND: ${{ steps.params.outputs.command }}
+        REQUESTER: ${{ github.event.comment.user.login }}
+      run: |
+        {
+          quote="$(printf '%s' "$COMMAND" | sed 's/`/\\`/g; s/@/\&#64;/g')"
+          printf '> %s\n\n' "$quote"
+          echo "🤖 **镜像同步｜⏳ 进行中**"
+          echo
+          echo "收到 @$REQUESTER 的请求，完成后会在这里回复拉取地址，请稍候…"
+        } > start.md
+        gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file start.md
 
     - uses: actions/checkout@v4
 
@@ -56,17 +70,17 @@ jobs:
       if: always()
       env:
         MSG: ${{ steps.sync.outputs.msg }}
-        IMAGE: ${{ steps.params.outputs.image }}
+        COMMAND: ${{ steps.params.outputs.command }}
       run: |
         {
-          if [ -n "$IMAGE" ]; then
-            echo "### \`$IMAGE\`"
-            echo
+          if [ -n "$COMMAND" ]; then
+            quote="$(printf '%s' "$COMMAND" | sed 's/`/\\`/g; s/@/\&#64;/g')"
+            printf '> %s\n\n' "$quote"
           fi
           if [ -n "$MSG" ]; then
             echo "$MSG"
           else
-            echo "😢 同步没能完成"
+            echo "🤖 **镜像同步｜❌ 没能开始**"
             echo
             echo "请确认评论格式是 \`/pull 镜像名:tag\`，例如 \`/pull python:3.12\`。"
             echo "如果格式没问题，可能是网络或镜像仓库暂时不可用，请稍后重试。"

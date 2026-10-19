@@ -106,7 +106,7 @@ def collect_images():
 
 def build_result_message(image, ali_target):
     lines = [
-        "🎉 **同步完成！**",
+        "🤖 **镜像同步｜✅ 完成**",
         "",
         f"镜像 `{image}` 已经同步到阿里云，可以在国内直接拉取了。",
         "",
@@ -125,7 +125,7 @@ def build_result_message(image, ali_target):
 
 def build_error_message(image, error):
     lines = [
-        "😢 **同步失败**",
+        "🤖 **镜像同步｜❌ 失败**",
         "",
         f"镜像 `{image}` 同步时出了点问题，请稍后重试。",
         "如果一直失败，可以确认下镜像名和 tag 是否正确。",

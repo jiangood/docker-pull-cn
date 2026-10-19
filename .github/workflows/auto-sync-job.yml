@@ -29,7 +29,7 @@ jobs:
         image="$(printf '%s\n' "$COMMENT_BODY" | sed -n '1{s|^/pull[[:space:]]*||;p;}')"
         image="$(printf '%s' "$image" | xargs)"
 
-        # 先写出原始评论，失败时也能引用到用户的操作
+        # 先写出原始评论，即使校验失败也能引用到用户的操作
         echo "command=$command" >> "$GITHUB_OUTPUT"
 
         if [ -z "$image" ]; then
@@ -42,9 +42,9 @@ jobs:
         fi
 
         echo "image=$image" >> "$GITHUB_OUTPUT"
-        echo "开始同步: $image"
 
-    - name: 回复issue开始
+    - name: 发布进行中评论
+      id: start
       env:
         COMMAND: ${{ steps.params.outputs.command }}
         REQUESTER: ${{ github.event.comment.user.login }}
@@ -54,9 +54,11 @@ jobs:
           printf '> %s\n\n' "$quote"
           echo "🤖 **镜像同步｜⏳ 进行中**"
           echo
-          echo "收到 @$REQUESTER 的请求，完成后会在这里回复拉取地址，请稍候…"
+          echo "收到 @$REQUESTER 的请求，完成后会更新这条评论，请稍候…"
         } > start.md
-        gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file start.md
+
+        comment_id="$(gh api "repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments" -F body=@start.md --jq .id)"
+        echo "comment_id=$comment_id" >> "$GITHUB_OUTPUT"
 
     - uses: actions/checkout@v4
 
@@ -66,11 +68,12 @@ jobs:
         IMAGE: ${{ steps.params.outputs.image }}
       run: python sync.py "$IMAGE"
 
-    - name: 回复结果
+    - name: 更新评论为结果
       if: always()
       env:
         MSG: ${{ steps.sync.outputs.msg }}
         COMMAND: ${{ steps.params.outputs.command }}
+        COMMENT_ID: ${{ steps.start.outputs.comment_id }}
       run: |
         {
           if [ -n "$COMMAND" ]; then
@@ -79,6 +82,10 @@ jobs:
           fi
           if [ -n "$MSG" ]; then
             echo "$MSG"
+          elif [ -n "$COMMENT_ID" ]; then
+            echo "🤖 **镜像同步｜❌ 失败**"
+            echo
+            echo "同步过程中出现了意外错误，请稍后重试，或查看 Actions 日志。"
           else
             echo "🤖 **镜像同步｜❌ 没能开始**"
             echo
@@ -86,4 +93,9 @@ jobs:
             echo "如果格式没问题，可能是网络或镜像仓库暂时不可用，请稍后重试。"
           fi
         } > comment.md
-        gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file comment.md
+
+        if [ -n "$COMMENT_ID" ]; then
+          gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" -F body=@comment.md > /dev/null
+        else
+          gh api "repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments" -F body=@comment.md > /dev/null
+        fi
